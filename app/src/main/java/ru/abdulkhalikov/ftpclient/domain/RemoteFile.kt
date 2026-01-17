@@ -10,7 +10,6 @@ data class RemoteFile(
     val type: Int,
     val size: Long,
     val timestamp: Calendar?,
-    val permissions: String?,
     val path: String
 ) {
     val isDirectory: Boolean

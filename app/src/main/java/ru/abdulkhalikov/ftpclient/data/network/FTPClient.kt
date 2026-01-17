@@ -8,7 +8,7 @@ object FTPClient {
 
     private val lock = Any()
 
-    fun create(): org.apache.commons.net.ftp.FTPClient {
+    fun create(): FTPClient {
         instance?.let { return it }
         synchronized(lock) {
             instance?.let { return it }
