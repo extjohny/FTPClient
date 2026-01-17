@@ -8,7 +8,7 @@ class FTPClientMapper {
 
     fun mapFtpFilesToRemoteFiles(
         list: Array<FTPFile?>,
-        ftpClient: FTPClient = ru.abdulkhalikov.ftpclient.data.network.FTPClient.create()
+        ftpClient: FTPClient = ru.abdulkhalikov.ftpclient.data.network.FTPConnection.get()
     ): List<RemoteFile> {
         val result = mutableListOf<RemoteFile>()
         for (i in list) {

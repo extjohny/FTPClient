@@ -2,13 +2,13 @@ package ru.abdulkhalikov.ftpclient.data.network
 
 import org.apache.commons.net.ftp.FTPClient
 
-object FTPClient {
+object FTPConnection {
 
     private val instance: FTPClient? = null
 
     private val lock = Any()
 
-    fun create(): FTPClient {
+    fun get(): FTPClient {
         instance?.let { return it }
         synchronized(lock) {
             instance?.let { return it }
