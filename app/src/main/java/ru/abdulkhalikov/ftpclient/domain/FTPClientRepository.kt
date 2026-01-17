@@ -5,7 +5,7 @@ import org.apache.commons.net.ftp.FTPFile
 
 interface FTPClientRepository {
 
-    suspend fun getFiles(): Flow<List<FTPFile>>
+    val files: Flow<List<FTPFile>>
 
     suspend fun addFile(file: FTPFile)
 
