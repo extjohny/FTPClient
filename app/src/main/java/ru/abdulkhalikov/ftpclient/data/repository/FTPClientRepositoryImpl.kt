@@ -1,29 +1,35 @@
+// data/repository/FTPClientRepositoryImpl.kt
 package ru.abdulkhalikov.ftpclient.data.repository
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
+import org.apache.commons.net.ftp.FTPClient
 import ru.abdulkhalikov.ftpclient.data.mapper.FTPClientMapper
-import ru.abdulkhalikov.ftpclient.data.network.FTPConnection
 import ru.abdulkhalikov.ftpclient.domain.FTPClientRepository
 import ru.abdulkhalikov.ftpclient.domain.RemoteFile
 import java.io.InputStream
 
-class FTPClientRepositoryImpl : FTPClientRepository {
-
-    private val ftpClient = FTPConnection.get()
+class FTPClientRepositoryImpl(
+    private val ftpClient: FTPClient
+) : FTPClientRepository {
 
     private val mapper = FTPClientMapper()
 
-    override val files: Flow<List<RemoteFile>> = flow {
-        emit(mapper.mapFtpFilesToRemoteFiles(ftpClient.listFiles()))
+    override suspend fun getFiles(path: String): List<RemoteFile> {
+        return mapper.mapFtpFilesToRemoteFiles(
+            list = ftpClient.listFiles(),
+            currentPath = getCurrentPath()
+        )
     }
 
-    override suspend fun addFile(remote: String, local: InputStream) {
-        withContext(Dispatchers.IO) {
-            ftpClient.storeFile(remote, local)
-        }
+    override suspend fun addFile(remotePath: String, local: InputStream): Boolean {
+        return true
+    }
+
+    override suspend fun removeFile(path: String): Boolean {
+        return true
     }
 
     override suspend fun getCurrentPath(): String {

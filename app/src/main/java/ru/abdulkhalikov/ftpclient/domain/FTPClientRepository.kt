@@ -1,13 +1,14 @@
 package ru.abdulkhalikov.ftpclient.domain
 
-import kotlinx.coroutines.flow.Flow
 import java.io.InputStream
 
 interface FTPClientRepository {
 
-    val files: Flow<List<RemoteFile>>
+    suspend fun getFiles(path: String = ""): List<RemoteFile>
 
-    suspend fun addFile(remote: String, local: InputStream)
+    suspend fun addFile(remote: String, local: InputStream): Boolean
 
-    suspend fun removeFile(path: String)
+    suspend fun removeFile(path: String): Boolean
+
+    suspend fun getCurrentPath(): String
 }
