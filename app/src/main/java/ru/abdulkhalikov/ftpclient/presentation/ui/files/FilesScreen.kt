@@ -1,11 +1,11 @@
 package ru.abdulkhalikov.ftpclient.presentation.ui.files
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -14,30 +14,44 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ru.abdulkhalikov.ftpclient.R
+import ru.abdulkhalikov.ftpclient.domain.GetFTPFilesStatus
 import ru.abdulkhalikov.ftpclient.domain.RemoteFile
 
 @Composable
 fun FilesScreen(
-    modifier: Modifier = Modifier,
-    viewModel: FilesViewModel = viewModel()
+    modifier: Modifier = Modifier
 ) {
-    val screenState = viewModel.screenState.collectAsState(FilesScreenState.Initial)
+    val viewModel: FilesViewModel = viewModel()
+    val screenState = viewModel.screenState.collectAsState()
 
     when (val currentState = screenState.value) {
-        is FilesScreenState.Error -> {}
-        FilesScreenState.Initial -> {}
-        FilesScreenState.Loading -> {}
-        is FilesScreenState.Success -> {
+        is GetFTPFilesStatus.Error -> {
+            val context = LocalContext.current
+            Toast.makeText(
+                context,
+                currentState.error,
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        GetFTPFilesStatus.Initial -> {}
+        GetFTPFilesStatus.Loading -> {
+            CircularProgressIndicator()
+        }
+
+        is GetFTPFilesStatus.Success -> {
             LazyColumn(
-                modifier = modifier.fillMaxSize()
+                modifier = modifier
             ) {
                 items(items = currentState.files, key = { it.id }) {
                     FTPFile(it)

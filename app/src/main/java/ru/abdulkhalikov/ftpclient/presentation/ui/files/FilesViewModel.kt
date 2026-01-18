@@ -2,25 +2,34 @@ package ru.abdulkhalikov.ftpclient.presentation.ui.files
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import ru.abdulkhalikov.ftpclient.data.repository.FTPClientRepositoryImpl
+import ru.abdulkhalikov.ftpclient.data.repository.FTPFilesRepositoryImpl
+import ru.abdulkhalikov.ftpclient.domain.GetFTPFilesStatus
+import ru.abdulkhalikov.ftpclient.domain.GetFilesUseCase
 
 class FilesViewModel() : ViewModel() {
 
-    private lateinit var repository: FTPClientRepositoryImpl
+    private val repository = FTPFilesRepositoryImpl
 
-    private val _screenState = MutableStateFlow<FilesScreenState>(FilesScreenState.Initial)
-    val screenState: StateFlow<FilesScreenState> = _screenState.asStateFlow()
+    private val getFilesUseCase = GetFilesUseCase(repository)
+
+    val screenState: StateFlow<GetFTPFilesStatus> = repository.files
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Lazily,
+            initialValue = GetFTPFilesStatus.Initial
+        )
 
     init {
         getFiles()
     }
 
-    private fun getFiles() = viewModelScope.launch(Dispatchers.IO) {
-
+    private fun getFiles() {
+        viewModelScope.launch {
+            getFilesUseCase.getFiles()
+        }
     }
 }

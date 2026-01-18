@@ -1,8 +1,8 @@
 package ru.abdulkhalikov.ftpclient.domain
 
-class GetFilesUseCase(private val repository: FTPClientRepository) {
+class GetFilesUseCase(private val repository: FTPFilesRepository) {
 
-    suspend fun getFiles(): List<RemoteFile> {
+    suspend fun getFiles() {
         return repository.getFiles()
     }
 }

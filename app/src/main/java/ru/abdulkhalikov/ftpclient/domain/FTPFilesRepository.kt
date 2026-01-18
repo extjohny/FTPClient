@@ -2,16 +2,9 @@ package ru.abdulkhalikov.ftpclient.domain
 
 import java.io.InputStream
 
-interface FTPClientRepository {
+interface FTPFilesRepository {
 
-    suspend fun connect(
-        host: String,
-        port: Int = 21,
-        username: String,
-        password: String
-    ): Boolean
-
-    suspend fun getFiles(path: String = ""): List<RemoteFile>
+    suspend fun getFiles(path: String = "")
 
     suspend fun addFile(remote: String, local: InputStream): Boolean
 

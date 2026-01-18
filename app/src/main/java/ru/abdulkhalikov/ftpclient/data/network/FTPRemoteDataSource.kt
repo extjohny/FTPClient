@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import org.apache.commons.net.ftp.FTPClient
+import org.apache.commons.net.ftp.FTPFile
 import ru.abdulkhalikov.ftpclient.domain.ConnectionParams
 import java.io.IOException
 
@@ -16,6 +17,10 @@ object FTPRemoteDataSource {
     private val _connectionState =
         MutableStateFlow<FTPConnectionResult>(FTPConnectionResult.Initial)
     val connectionState: StateFlow<FTPConnectionResult> = _connectionState.asStateFlow()
+
+    private val _files =
+        MutableStateFlow<GetFTPFilesResult>(GetFTPFilesResult.Initial)
+    val files: StateFlow<GetFTPFilesResult> = _files.asStateFlow()
 
     suspend fun connect(
         params: ConnectionParams
@@ -46,6 +51,20 @@ object FTPRemoteDataSource {
                 _connectionState.value = FTPConnectionResult.Error(e.message.toString())
             } catch (e: Exception) {
                 _connectionState.value = FTPConnectionResult.Error(e.message.toString())
+            }
+        }
+    }
+
+    suspend fun getFiles() {
+        withContext(Dispatchers.IO) {
+            try {
+                _files.value = GetFTPFilesResult.Loading
+                val files = ftpClient.listFiles()
+                _files.value = GetFTPFilesResult.Success(files)
+            } catch (e: IOException) {
+                _files.value = GetFTPFilesResult.Error(e.message.toString())
+            } catch (e: Exception) {
+                _files.value = GetFTPFilesResult.Error(e.message.toString())
             }
         }
     }
