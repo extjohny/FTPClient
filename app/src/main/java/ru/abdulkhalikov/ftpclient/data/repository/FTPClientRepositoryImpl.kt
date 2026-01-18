@@ -26,7 +26,17 @@ class FTPClientRepositoryImpl : FTPClientRepository {
         }
     }
 
-    override suspend fun removeFile(path: String) {
-        ftpClient.deleteFile(path)
+    override suspend fun getCurrentPath(): String {
+        return withContext(Dispatchers.IO) {
+            try {
+                if (ftpClient.isConnected) {
+                    ftpClient.printWorkingDirectory() ?: "/"
+                } else {
+                    "/"
+                }
+            } catch (e: Exception) {
+                "/"
+            }
+        }
     }
 }
