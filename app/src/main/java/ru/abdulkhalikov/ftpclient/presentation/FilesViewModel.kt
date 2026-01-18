@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import ru.abdulkhalikov.ftpclient.data.network.FTPConnectionManager
+import ru.abdulkhalikov.ftpclient.data.network.FTPRemoteDataSource
 import ru.abdulkhalikov.ftpclient.data.repository.FTPClientRepositoryImpl
 
 class FilesViewModel() : ViewModel() {
@@ -22,10 +22,6 @@ class FilesViewModel() : ViewModel() {
     }
 
     private fun getFiles() = viewModelScope.launch(Dispatchers.IO) {
-        repository = FTPClientRepositoryImpl(FTPConnectionManager.get())
-        _screenState.value = FilesScreenState.Loading
-        _screenState.value = FilesScreenState.Success(
-            files = repository.getFiles()
-        )
+
     }
 }
