@@ -21,7 +21,7 @@ class FilesViewModel() : ViewModel() {
         getFiles()
     }
 
-    private fun getFiles() = viewModelScope.launch {
+    private fun getFiles() = viewModelScope.launch(Dispatchers.IO) {
         repository = FTPClientRepositoryImpl(FTPConnectionManager.get())
         _screenState.value = FilesScreenState.Loading
         _screenState.value = FilesScreenState.Success(
