@@ -6,6 +6,7 @@ import java.util.Calendar
 import java.util.Locale
 
 data class RemoteFile(
+    val id: Int,
     val name: String,
     val type: Int,
     val size: Long,
