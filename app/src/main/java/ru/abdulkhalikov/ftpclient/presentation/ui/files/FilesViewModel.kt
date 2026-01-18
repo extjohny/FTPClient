@@ -1,4 +1,4 @@
-package ru.abdulkhalikov.ftpclient.presentation
+package ru.abdulkhalikov.ftpclient.presentation.ui.files
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import ru.abdulkhalikov.ftpclient.data.network.FTPRemoteDataSource
 import ru.abdulkhalikov.ftpclient.data.repository.FTPClientRepositoryImpl
 
 class FilesViewModel() : ViewModel() {

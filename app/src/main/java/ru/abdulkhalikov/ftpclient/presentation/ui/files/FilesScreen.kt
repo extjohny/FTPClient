@@ -1,4 +1,4 @@
-package ru.abdulkhalikov.ftpclient.presentation
+package ru.abdulkhalikov.ftpclient.presentation.ui.files
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box

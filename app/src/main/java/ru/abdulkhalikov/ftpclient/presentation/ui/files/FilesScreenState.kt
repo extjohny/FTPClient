@@ -1,4 +1,4 @@
-package ru.abdulkhalikov.ftpclient.presentation
+package ru.abdulkhalikov.ftpclient.presentation.ui.files
 
 import ru.abdulkhalikov.ftpclient.domain.RemoteFile
 

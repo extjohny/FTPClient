@@ -1,4 +1,4 @@
-package ru.abdulkhalikov.ftpclient.ui.theme
+package ru.abdulkhalikov.ftpclient.presentation.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

@@ -1,4 +1,4 @@
-package ru.abdulkhalikov.ftpclient.presentation.ui.screen
+package ru.abdulkhalikov.ftpclient.presentation.ui.connection
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +28,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ru.abdulkhalikov.ftpclient.domain.FTPConnectionStatus
-import ru.abdulkhalikov.ftpclient.presentation.ConnectionViewModel
+import ru.abdulkhalikov.ftpclient.presentation.ui.connection.ConnectionViewModel
 
 private val CORNER_RADIUS = 5.dp
 private val TEXT_FIELD_SPACER = 20.dp

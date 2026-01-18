@@ -1,4 +1,4 @@
-package ru.abdulkhalikov.ftpclient.presentation
+package ru.abdulkhalikov.ftpclient.presentation.ui.connection
 
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
@@ -22,7 +22,7 @@ class ConnectionViewModel : ViewModel() {
     val screenState: StateFlow<FTPConnectionStatus> = repository.connectionState
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(),
+            started = SharingStarted.Companion.WhileSubscribed(),
             initialValue = FTPConnectionStatus.Initial
         )
 
