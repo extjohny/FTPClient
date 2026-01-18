@@ -4,6 +4,8 @@ import java.io.InputStream
 
 interface FTPClientRepository {
 
+    suspend fun connect(): Boolean
+
     suspend fun getFiles(path: String = ""): List<RemoteFile>
 
     suspend fun addFile(remote: String, local: InputStream): Boolean
