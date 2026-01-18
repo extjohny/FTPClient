@@ -10,25 +10,45 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.Modifier
-import ru.abdulkhalikov.ftpclient.presentation.FilesScreen
-import ru.abdulkhalikov.ftpclient.ui.theme.FTPClientTheme
+import androidx.navigation.compose.rememberNavController
+import ru.abdulkhalikov.ftpclient.presentation.navigation.AppNavGraph
+import ru.abdulkhalikov.ftpclient.presentation.navigation.Destination
+import ru.abdulkhalikov.ftpclient.presentation.ui.screen.ConnectionScreen
+import ru.abdulkhalikov.ftpclient.presentation.ui.screen.FilesScreen
+import ru.abdulkhalikov.ftpclient.presentation.ui.theme.FTPClientTheme
 
 class MainActivity : ComponentActivity() {
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         setContent {
+            val navController = rememberNavController()
+
             FTPClientTheme {
                 Scaffold(
-                   topBar = {
-                       TopAppBar(
-                           title = { Text("FTP Client") }
-                       )
-                   }
-                ) {
-                    FilesScreen(modifier = Modifier.padding(it))
+                    topBar = {
+                        TopAppBar(
+                            title = { Text("FTP Client") }
+                        )
+                    }
+                ) { paddingValues ->
+                    AppNavGraph(
+                        navController = navController,
+                        connectionScreen = {
+                            ConnectionScreen(
+                                modifier = Modifier.padding(paddingValues),
+                                onSuccessConnection = {
+                                    navController.navigate(Destination.FilesScreen.route)
+                                }
+                            )
+                        },
+                        filesScreen = {
+                            FilesScreen(modifier = Modifier.padding(paddingValues))
+                        }
+                    )
                 }
             }
         }

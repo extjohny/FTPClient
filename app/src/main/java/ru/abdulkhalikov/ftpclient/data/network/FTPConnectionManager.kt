@@ -1,34 +1,56 @@
 package ru.abdulkhalikov.ftpclient.data.network
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import org.apache.commons.net.ftp.FTPClient
+import ru.abdulkhalikov.ftpclient.domain.ConnectionParams
 import java.io.IOException
 
 object FTPConnectionManager {
 
-    private val instance: FTPClient? = null
+    val ftpClient = FTPClient()
 
-    suspend fun get(): FTPClient {
-        return withContext(Dispatchers.Main.immediate) {
-            val ftpClient = FTPClient().also {
-                instance == it
-            }
-            if (ftpClient.connect()) {
-                ftpClient
-            } else {
-                throw IOException("FTPClient connection is not open")
+    private val _connectionState = MutableStateFlow<FTPConnectionState>(FTPConnectionState.Initial)
+    val connectionState: StateFlow<FTPConnectionState> = _connectionState.asStateFlow()
+
+    suspend fun connect(
+        params: ConnectionParams
+    ) {
+        withContext(Dispatchers.IO) {
+            try {
+                ftpClient.connect(params.host, params.port)
+
+                _connectionState.value = FTPConnectionState.Loading
+
+                if (!ftpClient.isConnected) {
+                    _connectionState.value = FTPConnectionState.Error("Connection failed")
+                    return@withContext
+                }
+
+                val loginSuccess = ftpClient.login(params.username, params.password)
+                if (!loginSuccess) {
+                    _connectionState.value = FTPConnectionState.Error("Incorrect input data")
+                    return@withContext
+                }
+
+                ftpClient.enterLocalPassiveMode()
+
+                _connectionState.value = FTPConnectionState.Success
+
+                return@withContext
+            } catch (e: IOException) {
+                _connectionState.value = FTPConnectionState.Error(e.message.toString())
+            } catch (e: Exception) {
+                _connectionState.value = FTPConnectionState.Error(e.message.toString())
             }
         }
     }
 
-    private suspend fun FTPClient.connect(
-
-    ): Boolean {
-        return withContext(Dispatchers.IO) {
-            this@connect.connect("31.24.251.233", 21)
-            this@connect.login("user311585", "DzKp2Xpn1a16")
-            this@connect.isConnected
-        }
+    suspend fun logout() = withContext(Dispatchers.IO) {
+        ftpClient.logout()
+        _connectionState.value = FTPConnectionState.Disconnected
     }
 }
