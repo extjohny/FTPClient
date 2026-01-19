@@ -1,6 +1,8 @@
 package ru.abdulkhalikov.ftpclient.presentation.ui.files
 
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.launch
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -28,7 +30,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import ru.abdulkhalikov.ftpclient.R
 import ru.abdulkhalikov.ftpclient.domain.GetFTPFilesStatus
 import ru.abdulkhalikov.ftpclient.domain.RemoteFile
@@ -36,11 +37,18 @@ import ru.abdulkhalikov.ftpclient.domain.RemoteFile
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilesScreen(
-    onAddFileButtonClick: () -> Unit
+    viewModel: FilesViewModel
 ) {
-    val viewModel: FilesViewModel = viewModel()
     val screenState = viewModel.screenState.collectAsState()
     val currentPathState = viewModel.remoteCurrentPath.collectAsState()
+
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = AddFileContract
+    ) { uri ->
+        uri?.let {
+            viewModel.addFile(it)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -51,7 +59,7 @@ fun FilesScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    onAddFileButtonClick()
+                    filePickerLauncher.launch()
                 }
             ) {
                 Image(

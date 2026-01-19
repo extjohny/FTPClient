@@ -1,5 +1,6 @@
 package ru.abdulkhalikov.ftpclient.presentation.ui.connection
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,19 +27,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import ru.abdulkhalikov.ftpclient.domain.FTPConnectionStatus
-import ru.abdulkhalikov.ftpclient.presentation.ui.connection.ConnectionViewModel
 
 private val CORNER_RADIUS = 5.dp
 private val TEXT_FIELD_SPACER = 20.dp
 
 @Composable
 fun ConnectionScreen(
+    viewModel: ConnectionViewModel,
     modifier: Modifier = Modifier,
     onSuccessConnection: () -> Unit
 ) {
-    val viewModel: ConnectionViewModel = viewModel()
     val screenState = viewModel.screenState.collectAsState()
 
     LoginForm(
@@ -64,6 +63,7 @@ fun ConnectionScreen(
         }
 
         FTPConnectionStatus.Success -> {
+            Log.d("LOG_TAG", "connection state: success")
             onSuccessConnection()
         }
     }

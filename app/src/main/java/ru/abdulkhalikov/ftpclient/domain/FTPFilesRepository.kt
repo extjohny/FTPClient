@@ -1,8 +1,13 @@
 package ru.abdulkhalikov.ftpclient.domain
 
 import android.net.Uri
+import kotlinx.coroutines.flow.Flow
 
 interface FTPFilesRepository {
+
+    val files: Flow<GetFTPFilesStatus>
+
+    val uploadState: Flow<UploadFilesStatus>
 
     suspend fun getFiles(path: String = "")
 

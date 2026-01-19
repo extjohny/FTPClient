@@ -7,18 +7,21 @@ import kotlinx.coroutines.withContext
 import ru.abdulkhalikov.ftpclient.data.mapper.FTPResultMapper.toDomain
 import ru.abdulkhalikov.ftpclient.data.network.FTPRemoteDataSource
 import ru.abdulkhalikov.ftpclient.domain.FTPFilesRepository
+import javax.inject.Inject
 
-object FTPFilesRepositoryImpl : FTPFilesRepository {
+class FTPFilesRepositoryImpl @Inject constructor(
+    private val connectionManager: FTPRemoteDataSource
+) : FTPFilesRepository {
 
-    private val connectionManager = FTPRemoteDataSource
+    override val files = connectionManager.files
+        .map {
+            it.toDomain(currentPath = getCurrentPath())
+        }
 
-    val files = connectionManager.files.map {
-        it.toDomain(currentPath = getCurrentPath())
-    }
-
-    val uploadState = connectionManager.uploadState.map {
-        it.toDomain()
-    }
+    override val uploadState = connectionManager.uploadState
+        .map {
+            it.toDomain()
+        }
 
     override suspend fun getFiles(path: String) {
         connectionManager.getFiles(path)

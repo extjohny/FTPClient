@@ -1,21 +1,23 @@
 package ru.abdulkhalikov.ftpclient.data.network
 
+import android.content.Context
 import android.net.Uri
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
-import ru.abdulkhalikov.ftpclient.MyApp
-import ru.abdulkhalikov.ftpclient.data.network.manage_state.FTPConnectionResult
-import ru.abdulkhalikov.ftpclient.data.network.manage_state.GetFTPFilesResult
-import ru.abdulkhalikov.ftpclient.data.network.manage_state.UploadFileResult
+import ru.abdulkhalikov.ftpclient.data.network.state.FTPConnectionResult
+import ru.abdulkhalikov.ftpclient.data.network.state.GetFTPFilesResult
+import ru.abdulkhalikov.ftpclient.data.network.state.UploadFileResult
 import ru.abdulkhalikov.ftpclient.domain.ConnectionParams
 import java.io.IOException
+import javax.inject.Inject
 
-object FTPRemoteDataSource {
-
-    private val context = MyApp()
+class FTPRemoteDataSource @Inject constructor(
+    private val context: Context
+) {
 
     val ftpClient = FTPConnectionManager.getFTPClient()
 
@@ -33,6 +35,7 @@ object FTPRemoteDataSource {
     suspend fun connect(
         params: ConnectionParams
     ) {
+        Log.d("LOG_TAG", "connection state: connect data source func")
         withContext(Dispatchers.IO) {
             try {
                 ftpClient.connect(params.host, params.port)
@@ -53,6 +56,7 @@ object FTPRemoteDataSource {
                 ftpClient.enterLocalPassiveMode()
 
                 _connectionState.value = FTPConnectionResult.Success
+                Log.d("LOG_TAG", "connection state: success")
 
                 return@withContext
             } catch (e: IOException) {
