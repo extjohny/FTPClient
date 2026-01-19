@@ -1,8 +1,6 @@
 package ru.abdulkhalikov.ftpclient.presentation.ui.files
 
-import android.app.Application
 import android.net.Uri
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,17 +11,18 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import ru.abdulkhalikov.ftpclient.data.repository.FTPFilesRepositoryImpl
 import ru.abdulkhalikov.ftpclient.domain.AddFileUseCase
+import ru.abdulkhalikov.ftpclient.domain.FTPFilesRepository
 import ru.abdulkhalikov.ftpclient.domain.GetFTPFilesStatus
 import ru.abdulkhalikov.ftpclient.domain.GetFilesUseCase
 import ru.abdulkhalikov.ftpclient.domain.RemoteFile
 import ru.abdulkhalikov.ftpclient.domain.UploadFilesStatus
+import javax.inject.Inject
 
-class FilesViewModel : ViewModel() {
-
-    private val repository = FTPFilesRepositoryImpl
-
-    private val getFilesUseCase = GetFilesUseCase(repository)
-    private val addFileUseCase = AddFileUseCase(repository)
+class FilesViewModel @Inject constructor(
+    private val repository: FTPFilesRepository,
+    private val getFilesUseCase: GetFilesUseCase,
+    private val addFileUseCase: AddFileUseCase
+) : ViewModel() {
 
     val screenState: StateFlow<GetFTPFilesStatus> = repository.files
         .stateIn(

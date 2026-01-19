@@ -30,7 +30,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import ru.abdulkhalikov.ftpclient.R
 import ru.abdulkhalikov.ftpclient.domain.GetFTPFilesStatus
 import ru.abdulkhalikov.ftpclient.domain.RemoteFile
@@ -38,9 +37,8 @@ import ru.abdulkhalikov.ftpclient.domain.RemoteFile
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilesScreen(
-    onAddFileButtonClick: () -> Unit
+    viewModel: FilesViewModel
 ) {
-    val viewModel: FilesViewModel = viewModel()
     val screenState = viewModel.screenState.collectAsState()
     val currentPathState = viewModel.remoteCurrentPath.collectAsState()
 

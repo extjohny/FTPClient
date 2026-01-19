@@ -2,6 +2,7 @@ package ru.abdulkhalikov.ftpclient.data.network
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,6 +35,7 @@ class FTPRemoteDataSource @Inject constructor(
     suspend fun connect(
         params: ConnectionParams
     ) {
+        Log.d("LOG_TAG", "connection state: connect data source func")
         withContext(Dispatchers.IO) {
             try {
                 ftpClient.connect(params.host, params.port)
@@ -54,6 +56,7 @@ class FTPRemoteDataSource @Inject constructor(
                 ftpClient.enterLocalPassiveMode()
 
                 _connectionState.value = FTPConnectionResult.Success
+                Log.d("LOG_TAG", "connection state: success")
 
                 return@withContext
             } catch (e: IOException) {

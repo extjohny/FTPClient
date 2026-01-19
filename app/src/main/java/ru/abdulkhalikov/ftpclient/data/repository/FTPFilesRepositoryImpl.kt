@@ -13,13 +13,15 @@ class FTPFilesRepositoryImpl @Inject constructor(
     private val connectionManager: FTPRemoteDataSource
 ) : FTPFilesRepository {
 
-    val files = connectionManager.files.map {
-        it.toDomain(currentPath = getCurrentPath())
-    }
+    override val files = connectionManager.files
+        .map {
+            it.toDomain(currentPath = getCurrentPath())
+        }
 
-    val uploadState = connectionManager.uploadState.map {
-        it.toDomain()
-    }
+    override val uploadState = connectionManager.uploadState
+        .map {
+            it.toDomain()
+        }
 
     override suspend fun getFiles(path: String) {
         connectionManager.getFiles(path)
