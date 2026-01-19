@@ -6,6 +6,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.launch
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.material3.Icon
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +19,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CreateNewFolder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,9 +28,19 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -46,7 +59,25 @@ fun FilesScreen(
     val screenState = viewModel.screenState.collectAsState()
     val currentPathState = viewModel.remoteCurrentPath.collectAsState()
     val uploadState = viewModel.uploadState.collectAsState()
+    val createDirectoryResult = viewModel.createDirectoryResult.collectAsState()
+    val canNavigateBack = viewModel.canNavigateBack()
     val context = LocalContext.current
+
+    var showCreateDirectoryDialog by remember { mutableStateOf(false) }
+    var directoryName by remember { mutableStateOf("") }
+    var showFABMenu by remember { mutableStateOf(false) }
+
+    // Обработка результата создания папки
+    LaunchedEffect(createDirectoryResult.value) {
+        createDirectoryResult.value?.let { result ->
+            Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
+            viewModel.clearCreateDirectoryResult()
+            if (result.contains("successfully", ignoreCase = true)) {
+                showCreateDirectoryDialog = false
+                directoryName = ""
+            }
+        }
+    }
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = AddFileContract()
@@ -67,19 +98,60 @@ fun FilesScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(currentPathState.value) }
+                title = { Text(currentPathState.value) },
+                navigationIcon = {
+                    if (canNavigateBack) {
+                        IconButton(onClick = { viewModel.navigateBack() }) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = "Back"
+                            )
+                        }
+                    }
+                }
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    filePickerLauncher.launch()
+            if (showFABMenu) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    ExtendedFloatingActionButton(
+                        onClick = {
+                            showCreateDirectoryDialog = true
+                            showFABMenu = false
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.CreateNewFolder,
+                                contentDescription = null
+                            )
+                        },
+                        text = { Text("Create Folder") }
+                    )
+                    ExtendedFloatingActionButton(
+                        onClick = {
+                            filePickerLauncher.launch()
+                            showFABMenu = false
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = null
+                            )
+                        },
+                        text = { Text("Add File") }
+                    )
                 }
-            ) {
-                Image(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = null
-                )
+            } else {
+                FloatingActionButton(
+                    onClick = { showFABMenu = true }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null
+                    )
+                }
             }
         }
     ) { paddingValues ->
@@ -124,7 +196,7 @@ fun FilesScreen(
                     LazyColumn {
                         items(items = currentState.files, key = { it.id }) { file ->
                             FTPFile(file) {
-                                viewModel.navigateToDirectory(it)
+                                viewModel.navigateToDirectory(file)
                             }
                         }
                         item {
@@ -140,6 +212,48 @@ fun FilesScreen(
                     }
                 }
             }
+        }
+
+        // Диалог создания папки
+        if (showCreateDirectoryDialog) {
+            AlertDialog(
+                onDismissRequest = {
+                    showCreateDirectoryDialog = false
+                    directoryName = ""
+                },
+                title = { Text("Create Folder") },
+                text = {
+                    OutlinedTextField(
+                        value = directoryName,
+                        onValueChange = { directoryName = it },
+                        label = { Text("Folder Name") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            if (directoryName.isNotBlank()) {
+                                viewModel.createDirectory(directoryName)
+                                showCreateDirectoryDialog = false
+                                directoryName = ""
+                            }
+                        }
+                    ) {
+                        Text("Create")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            showCreateDirectoryDialog = false
+                            directoryName = ""
+                        }
+                    ) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
     }
 }

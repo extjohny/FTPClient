@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import ru.abdulkhalikov.ftpclient.domain.AddFileUseCase
+import ru.abdulkhalikov.ftpclient.domain.CreateDirectoryUseCase
 import ru.abdulkhalikov.ftpclient.domain.FTPFilesRepository
 import ru.abdulkhalikov.ftpclient.domain.GetFTPFilesStatus
 import ru.abdulkhalikov.ftpclient.domain.GetFilesUseCase
@@ -20,7 +21,8 @@ import javax.inject.Inject
 class FilesViewModel @Inject constructor(
     private val repository: FTPFilesRepository,
     private val getFilesUseCase: GetFilesUseCase,
-    private val addFileUseCase: AddFileUseCase
+    private val addFileUseCase: AddFileUseCase,
+    private val createDirectoryUseCase: CreateDirectoryUseCase
 ) : ViewModel() {
 
     val screenState: StateFlow<GetFTPFilesStatus> = repository.files
@@ -58,8 +60,50 @@ class FilesViewModel @Inject constructor(
 
     fun navigateToDirectory(remoteFile: RemoteFile) {
         if (remoteFile.isDirectory) {
-            _remoteCurrentPath.value += remoteFile.name
-            getFiles(_remoteCurrentPath.value)
+            val currentPath = _remoteCurrentPath.value
+            val newPath = if (currentPath.endsWith("/")) {
+                currentPath + remoteFile.name
+            } else {
+                "$currentPath/${remoteFile.name}"
+            }
+            _remoteCurrentPath.value = newPath
+            getFiles(newPath)
         }
+    }
+
+    fun navigateBack() {
+        val currentPath = _remoteCurrentPath.value.trimEnd('/')
+        if (currentPath == "" || currentPath == "/") {
+            return
+        }
+        val parentPath = currentPath.substringBeforeLast('/', "/")
+        _remoteCurrentPath.value = parentPath
+        getFiles(parentPath)
+    }
+
+    fun canNavigateBack(): Boolean {
+        val currentPath = _remoteCurrentPath.value.trimEnd('/')
+        return currentPath != "" && currentPath != "/"
+    }
+
+    private val _createDirectoryResult = MutableStateFlow<String?>(null)
+    val createDirectoryResult: StateFlow<String?> = _createDirectoryResult.asStateFlow()
+
+    fun createDirectory(directoryName: String) {
+        viewModelScope.launch {
+            _createDirectoryResult.value = null
+            val success = createDirectoryUseCase.createDirectory(_remoteCurrentPath.value, directoryName)
+            if (success) {
+                _createDirectoryResult.value = "Directory created successfully"
+                // Обновляем список файлов после создания папки
+                getFiles(_remoteCurrentPath.value)
+            } else {
+                _createDirectoryResult.value = "Failed to create directory"
+            }
+        }
+    }
+
+    fun clearCreateDirectoryResult() {
+        _createDirectoryResult.value = null
     }
 }

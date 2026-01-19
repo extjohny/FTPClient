@@ -111,6 +111,26 @@ class FTPRemoteDataSource @Inject constructor(
         }
     }
 
+    suspend fun createDirectory(path: String, directoryName: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                val fullPath = if (path.endsWith("/")) {
+                    "$path$directoryName"
+                } else {
+                    "$path/$directoryName"
+                }
+                val success = ftpClient.makeDirectory(fullPath)
+                if (!success) {
+                    Log.e("LOG_TAG", "Failed to create directory: ${ftpClient.replyString}")
+                }
+                success
+            } catch (e: Exception) {
+                Log.e("LOG_TAG", "Error creating directory", e)
+                false
+            }
+        }
+    }
+
     private fun getFileNameFromUri(uri: Uri): String? {
         var result: String? = null
         if (uri.scheme == "content") {

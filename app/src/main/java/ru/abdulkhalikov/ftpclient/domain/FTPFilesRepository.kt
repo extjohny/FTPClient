@@ -15,5 +15,7 @@ interface FTPFilesRepository {
 
     suspend fun removeFile(path: String)
 
+    suspend fun createDirectory(path: String, directoryName: String): Boolean
+
     suspend fun getCurrentPath(): String
 }

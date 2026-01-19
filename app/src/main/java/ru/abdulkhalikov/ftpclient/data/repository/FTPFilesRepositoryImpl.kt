@@ -37,6 +37,10 @@ class FTPFilesRepositoryImpl @Inject constructor(
 
     }
 
+    override suspend fun createDirectory(path: String, directoryName: String): Boolean {
+        return connectionManager.createDirectory(path, directoryName)
+    }
+
     override suspend fun getCurrentPath(): String {
         return withContext(Dispatchers.IO) {
             try {
