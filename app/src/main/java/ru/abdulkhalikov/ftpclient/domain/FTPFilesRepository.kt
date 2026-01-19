@@ -1,14 +1,14 @@
 package ru.abdulkhalikov.ftpclient.domain
 
-import java.io.InputStream
+import android.net.Uri
 
 interface FTPFilesRepository {
 
     suspend fun getFiles(path: String = "")
 
-    suspend fun addFile(remote: String, local: InputStream): Boolean
+    suspend fun addFile(remote: String, local: Uri)
 
-    suspend fun removeFile(path: String): Boolean
+    suspend fun removeFile(path: String)
 
     suspend fun getCurrentPath(): String
 }

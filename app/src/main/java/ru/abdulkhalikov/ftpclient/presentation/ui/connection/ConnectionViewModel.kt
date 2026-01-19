@@ -13,7 +13,7 @@ import ru.abdulkhalikov.ftpclient.domain.ConnectionParams
 import ru.abdulkhalikov.ftpclient.domain.FTPConnectionStatus
 
 @Stable
-class ConnectionViewModel : ViewModel() {
+class ConnectionViewModel() : ViewModel() {
 
     private val repository = ConnectionRepositoryImpl
 

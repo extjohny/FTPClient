@@ -1,11 +1,22 @@
 package ru.abdulkhalikov.ftpclient.data.mapper
 
 import org.apache.commons.net.ftp.FTPFile
-import ru.abdulkhalikov.ftpclient.data.network.GetFTPFilesResult
+import ru.abdulkhalikov.ftpclient.data.network.manage_state.GetFTPFilesResult
+import ru.abdulkhalikov.ftpclient.data.network.manage_state.UploadFileResult
 import ru.abdulkhalikov.ftpclient.domain.GetFTPFilesStatus
 import ru.abdulkhalikov.ftpclient.domain.RemoteFile
+import ru.abdulkhalikov.ftpclient.domain.UploadFilesStatus
 
-object FTPClientMapper {
+object FTPResultMapper {
+
+    fun UploadFileResult.toDomain(): UploadFilesStatus {
+        return when (this) {
+            is UploadFileResult.Error -> UploadFilesStatus.Error(this.error)
+            UploadFileResult.Initial -> UploadFilesStatus.Initial
+            UploadFileResult.Loading -> UploadFilesStatus.Loading
+            UploadFileResult.Success -> UploadFilesStatus.Success
+        }
+    }
 
     fun GetFTPFilesResult.toDomain(
         currentPath: String

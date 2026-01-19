@@ -11,10 +11,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
-import ru.abdulkhalikov.ftpclient.presentation.ui.files.FilesScreen
 import ru.abdulkhalikov.ftpclient.presentation.navigation.AppNavGraph
 import ru.abdulkhalikov.ftpclient.presentation.navigation.Destination
 import ru.abdulkhalikov.ftpclient.presentation.ui.connection.ConnectionScreen
+import ru.abdulkhalikov.ftpclient.presentation.ui.files.FilesScreen
 import ru.abdulkhalikov.ftpclient.presentation.ui.theme.FTPClientTheme
 
 class MainActivity : ComponentActivity() {
@@ -46,7 +46,9 @@ class MainActivity : ComponentActivity() {
                             )
                         },
                         filesScreen = {
-                            FilesScreen(modifier = Modifier.padding(paddingValues))
+                            FilesScreen {
+                                // on add lick logic
+                            }
                         }
                     )
                 }

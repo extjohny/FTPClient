@@ -1,4 +1,4 @@
-package ru.abdulkhalikov.ftpclient.data.network
+package ru.abdulkhalikov.ftpclient.data.network.manage_state
 
 
 sealed interface FTPConnectionResult {
