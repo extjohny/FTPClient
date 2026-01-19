@@ -1,6 +1,6 @@
 package ru.abdulkhalikov.ftpclient.data.mapper
 
-import ru.abdulkhalikov.ftpclient.data.network.manage_state.FTPConnectionResult
+import ru.abdulkhalikov.ftpclient.data.network.state.FTPConnectionResult
 import ru.abdulkhalikov.ftpclient.domain.FTPConnectionStatus
 
 object ConnectionResultMapper {

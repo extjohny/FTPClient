@@ -1,4 +1,4 @@
-package ru.abdulkhalikov.ftpclient.data.network.manage_state
+package ru.abdulkhalikov.ftpclient.data.network.state
 
 sealed interface UploadFileResult {
 

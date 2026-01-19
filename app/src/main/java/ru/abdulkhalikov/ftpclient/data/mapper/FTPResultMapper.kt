@@ -1,8 +1,8 @@
 package ru.abdulkhalikov.ftpclient.data.mapper
 
 import org.apache.commons.net.ftp.FTPFile
-import ru.abdulkhalikov.ftpclient.data.network.manage_state.GetFTPFilesResult
-import ru.abdulkhalikov.ftpclient.data.network.manage_state.UploadFileResult
+import ru.abdulkhalikov.ftpclient.data.network.state.GetFTPFilesResult
+import ru.abdulkhalikov.ftpclient.data.network.state.UploadFileResult
 import ru.abdulkhalikov.ftpclient.domain.GetFTPFilesStatus
 import ru.abdulkhalikov.ftpclient.domain.RemoteFile
 import ru.abdulkhalikov.ftpclient.domain.UploadFilesStatus

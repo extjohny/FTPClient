@@ -7,9 +7,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import ru.abdulkhalikov.ftpclient.MyApp
-import ru.abdulkhalikov.ftpclient.data.network.manage_state.FTPConnectionResult
-import ru.abdulkhalikov.ftpclient.data.network.manage_state.GetFTPFilesResult
-import ru.abdulkhalikov.ftpclient.data.network.manage_state.UploadFileResult
+import ru.abdulkhalikov.ftpclient.data.network.state.FTPConnectionResult
+import ru.abdulkhalikov.ftpclient.data.network.state.GetFTPFilesResult
+import ru.abdulkhalikov.ftpclient.data.network.state.UploadFileResult
 import ru.abdulkhalikov.ftpclient.domain.ConnectionParams
 import java.io.IOException
 
