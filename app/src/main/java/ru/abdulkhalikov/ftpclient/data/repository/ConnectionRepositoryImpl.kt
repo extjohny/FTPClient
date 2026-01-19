@@ -1,6 +1,6 @@
 package ru.abdulkhalikov.ftpclient.data.repository
 
-import android.content.Context
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import ru.abdulkhalikov.ftpclient.data.mapper.ConnectionResultMapper.toDomain
@@ -9,11 +9,11 @@ import ru.abdulkhalikov.ftpclient.domain.ConnectionParams
 import ru.abdulkhalikov.ftpclient.domain.ConnectionRepository
 import ru.abdulkhalikov.ftpclient.domain.FTPConnectionStatus
 
-object ConnectionRepositoryImpl : ConnectionRepository {
+class ConnectionRepositoryImpl @Inject constructor(
+    private val connectionManager: FTPRemoteDataSource
+) : ConnectionRepository {
 
-    private val connectionManager = FTPRemoteDataSource
-
-    val connectionState: Flow<FTPConnectionStatus> = connectionManager.connectionState
+    override val connectionState: Flow<FTPConnectionStatus> = connectionManager.connectionState
         .map {
             it.toDomain()
         }

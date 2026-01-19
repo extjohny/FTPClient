@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("kotlin-kapt")
 }
 
 android {
@@ -49,6 +50,9 @@ dependencies {
 
     // jetpack compose navigation
     implementation("androidx.navigation:navigation-compose:2.5.2")
+
+    implementation("com.google.dagger:dagger:2.58")
+    kapt("com.google.dagger:dagger-compiler:2.58")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

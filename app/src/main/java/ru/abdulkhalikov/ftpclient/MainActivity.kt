@@ -11,6 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+import ru.abdulkhalikov.ftpclient.di.DaggerApplicationComponent
+import ru.abdulkhalikov.ftpclient.di.DataModule
 import ru.abdulkhalikov.ftpclient.presentation.navigation.AppNavGraph
 import ru.abdulkhalikov.ftpclient.presentation.navigation.Destination
 import ru.abdulkhalikov.ftpclient.presentation.ui.connection.ConnectionScreen
@@ -18,6 +20,12 @@ import ru.abdulkhalikov.ftpclient.presentation.ui.files.FilesScreen
 import ru.abdulkhalikov.ftpclient.presentation.ui.theme.FTPClientTheme
 
 class MainActivity : ComponentActivity() {
+
+    private val component by lazy {
+        DaggerApplicationComponent.builder()
+            .dataModule(DataModule(this))
+            .build()
+    }
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {

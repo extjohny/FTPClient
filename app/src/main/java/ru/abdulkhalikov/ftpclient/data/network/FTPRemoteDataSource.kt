@@ -1,21 +1,22 @@
 package ru.abdulkhalikov.ftpclient.data.network
 
+import android.content.Context
 import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
-import ru.abdulkhalikov.ftpclient.MyApp
 import ru.abdulkhalikov.ftpclient.data.network.state.FTPConnectionResult
 import ru.abdulkhalikov.ftpclient.data.network.state.GetFTPFilesResult
 import ru.abdulkhalikov.ftpclient.data.network.state.UploadFileResult
 import ru.abdulkhalikov.ftpclient.domain.ConnectionParams
 import java.io.IOException
+import javax.inject.Inject
 
-object FTPRemoteDataSource {
-
-    private val context = MyApp()
+class FTPRemoteDataSource @Inject constructor(
+    private val context: Context
+) {
 
     val ftpClient = FTPConnectionManager.getFTPClient()
 

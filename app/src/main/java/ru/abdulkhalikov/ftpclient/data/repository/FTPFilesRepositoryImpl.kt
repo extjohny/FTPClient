@@ -7,10 +7,11 @@ import kotlinx.coroutines.withContext
 import ru.abdulkhalikov.ftpclient.data.mapper.FTPResultMapper.toDomain
 import ru.abdulkhalikov.ftpclient.data.network.FTPRemoteDataSource
 import ru.abdulkhalikov.ftpclient.domain.FTPFilesRepository
+import javax.inject.Inject
 
-object FTPFilesRepositoryImpl : FTPFilesRepository {
-
-    private val connectionManager = FTPRemoteDataSource
+class FTPFilesRepositoryImpl @Inject constructor(
+    private val connectionManager: FTPRemoteDataSource
+) : FTPFilesRepository {
 
     val files = connectionManager.files.map {
         it.toDomain(currentPath = getCurrentPath())
