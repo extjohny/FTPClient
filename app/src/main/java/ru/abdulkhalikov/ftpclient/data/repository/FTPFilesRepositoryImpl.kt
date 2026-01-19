@@ -29,7 +29,8 @@ class FTPFilesRepositoryImpl @Inject constructor(
 
     override suspend fun addFile(remote: String, local: Uri) {
         connectionManager.uploadFile(local, remote)
-        getFiles(remote)
+        val currentPath = getCurrentPath()
+        getFiles(currentPath)
     }
 
     override suspend fun removeFile(path: String) {

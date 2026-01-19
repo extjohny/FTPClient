@@ -14,7 +14,9 @@ import ru.abdulkhalikov.ftpclient.data.network.state.UploadFileResult
 import ru.abdulkhalikov.ftpclient.domain.ConnectionParams
 import java.io.IOException
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class FTPRemoteDataSource @Inject constructor(
     private val context: Context
 ) {
@@ -35,7 +37,6 @@ class FTPRemoteDataSource @Inject constructor(
     suspend fun connect(
         params: ConnectionParams
     ) {
-        Log.d("LOG_TAG", "connection state: connect data source func")
         withContext(Dispatchers.IO) {
             try {
                 ftpClient.connect(params.host, params.port)
@@ -56,7 +57,6 @@ class FTPRemoteDataSource @Inject constructor(
                 ftpClient.enterLocalPassiveMode()
 
                 _connectionState.value = FTPConnectionResult.Success
-                Log.d("LOG_TAG", "connection state: success")
 
                 return@withContext
             } catch (e: IOException) {
@@ -83,18 +83,56 @@ class FTPRemoteDataSource @Inject constructor(
 
     suspend fun uploadFile(localUri: Uri, remotePath: String) {
         withContext(Dispatchers.IO) {
-            return@withContext try {
+            _uploadState.value = UploadFileResult.Loading
+            try {
+                // Получаем имя файла из URI
+                val fileName = getFileNameFromUri(localUri) ?: "uploaded_file"
+                val fullRemotePath = if (remotePath.endsWith("/")) {
+                    remotePath + fileName
+                } else {
+                    "$remotePath/$fileName"
+                }
+
                 context.contentResolver.openInputStream(localUri).use { inputStream ->
-                    val success = ftpClient.storeFile(remotePath, inputStream)
+                    val success = ftpClient.storeFile(fullRemotePath, inputStream)
                     if (success) {
                         _uploadState.value = UploadFileResult.Success
+                        Log.d("LOG_TAG", "Upload file: success state set")
                     } else {
-                        _uploadState.value = UploadFileResult.Error("Upload failed")
+                        val replyString = ftpClient.replyString
+                        _uploadState.value = UploadFileResult.Error("Upload failed: $replyString")
                     }
                 }
             } catch (e: IOException) {
-                _uploadState.value = UploadFileResult.Error(e.message.toString())
+                _uploadState.value = UploadFileResult.Error(e.message ?: "IO Error")
+            } catch (e: Exception) {
+                _uploadState.value = UploadFileResult.Error(e.message ?: "Unknown error")
             }
         }
+    }
+
+    private fun getFileNameFromUri(uri: Uri): String? {
+        var result: String? = null
+        if (uri.scheme == "content") {
+            context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                    if (nameIndex >= 0) {
+                        result = cursor.getString(nameIndex)
+                    }
+                }
+            }
+        }
+        if (result == null) {
+            result = uri.path?.let {
+                val cut = it.lastIndexOf('/')
+                if (cut != -1) {
+                    it.substring(cut + 1)
+                } else {
+                    null
+                }
+            }
+        }
+        return result
     }
 }

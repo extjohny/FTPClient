@@ -3,9 +3,7 @@ package ru.abdulkhalikov.ftpclient.presentation.ui.connection
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import ru.abdulkhalikov.ftpclient.domain.ConnectUseCase
 import ru.abdulkhalikov.ftpclient.domain.ConnectionParams
@@ -19,11 +17,6 @@ class ConnectionViewModel @Inject constructor(
 ) : ViewModel() {
 
     val screenState: StateFlow<FTPConnectionStatus> = repository.connectionState
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Companion.WhileSubscribed(5000),
-            initialValue = FTPConnectionStatus.Initial
-        )
 
     fun connect(
         host: String,
