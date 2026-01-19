@@ -15,6 +15,7 @@ import ru.abdulkhalikov.ftpclient.domain.FTPFilesRepository
 import ru.abdulkhalikov.ftpclient.domain.GetFTPFilesStatus
 import ru.abdulkhalikov.ftpclient.domain.GetFilesUseCase
 import ru.abdulkhalikov.ftpclient.domain.RemoteFile
+import ru.abdulkhalikov.ftpclient.domain.RemoveFileUseCase
 import ru.abdulkhalikov.ftpclient.domain.UploadFilesStatus
 import javax.inject.Inject
 
@@ -22,7 +23,8 @@ class FilesViewModel @Inject constructor(
     private val repository: FTPFilesRepository,
     private val getFilesUseCase: GetFilesUseCase,
     private val addFileUseCase: AddFileUseCase,
-    private val createDirectoryUseCase: CreateDirectoryUseCase
+    private val createDirectoryUseCase: CreateDirectoryUseCase,
+    private val removeFileUseCase: RemoveFileUseCase
 ) : ViewModel() {
 
     val screenState: StateFlow<GetFTPFilesStatus> = repository.files
@@ -73,17 +75,24 @@ class FilesViewModel @Inject constructor(
 
     fun navigateBack() {
         val currentPath = _remoteCurrentPath.value.trimEnd('/')
-        if (currentPath == "" || currentPath == "/") {
+        if (currentPath.isEmpty() || currentPath == "/") {
             return
         }
-        val parentPath = currentPath.substringBeforeLast('/', "/")
+
+        val lastSlashIndex = currentPath.lastIndexOf('/')
+        val parentPath = if (lastSlashIndex > 0) {
+            currentPath.substring(0, lastSlashIndex)
+        } else {
+            "/"
+        }
+
         _remoteCurrentPath.value = parentPath
         getFiles(parentPath)
     }
 
     fun canNavigateBack(): Boolean {
         val currentPath = _remoteCurrentPath.value.trimEnd('/')
-        return currentPath != "" && currentPath != "/"
+        return currentPath.isNotEmpty() && currentPath != "/"
     }
 
     private val _createDirectoryResult = MutableStateFlow<String?>(null)
@@ -92,10 +101,10 @@ class FilesViewModel @Inject constructor(
     fun createDirectory(directoryName: String) {
         viewModelScope.launch {
             _createDirectoryResult.value = null
-            val success = createDirectoryUseCase.createDirectory(_remoteCurrentPath.value, directoryName)
+            val success =
+                createDirectoryUseCase.createDirectory(_remoteCurrentPath.value, directoryName)
             if (success) {
                 _createDirectoryResult.value = "Directory created successfully"
-                // Обновляем список файлов после создания папки
                 getFiles(_remoteCurrentPath.value)
             } else {
                 _createDirectoryResult.value = "Failed to create directory"
@@ -105,5 +114,12 @@ class FilesViewModel @Inject constructor(
 
     fun clearCreateDirectoryResult() {
         _createDirectoryResult.value = null
+    }
+
+    fun removeFile(remoteFile: RemoteFile) {
+        viewModelScope.launch {
+            removeFileUseCase.removeFile(remoteFile.path)
+            getFiles(_remoteCurrentPath.value)
+        }
     }
 }

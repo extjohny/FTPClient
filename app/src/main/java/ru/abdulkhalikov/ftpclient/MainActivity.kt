@@ -5,10 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -31,7 +29,6 @@ class MainActivity : ComponentActivity() {
     lateinit var viewModelFactory: ViewModelProvider.Factory
 
 
-    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -47,11 +44,7 @@ class MainActivity : ComponentActivity() {
 
             FTPClientTheme {
                 Scaffold(
-                    topBar = {
-                        TopAppBar(
-                            title = { Text("FTP Client") }
-                        )
-                    }
+                    containerColor = MaterialTheme.colorScheme.background,
                 ) { paddingValues ->
                     AppNavGraph(
                         navController = navController,
@@ -72,7 +65,8 @@ class MainActivity : ComponentActivity() {
                                 factory = viewModelFactory
                             )
                             FilesScreen(
-                                viewModel = filesViewModel
+                                viewModel = filesViewModel,
+                                navController = navController
                             )
                         }
                     )
