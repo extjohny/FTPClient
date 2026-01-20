@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
+import org.apache.commons.net.ftp.FTPSClient
 import ru.abdulkhalikov.ftpclient.data.network.state.FTPConnectionResult
 import ru.abdulkhalikov.ftpclient.data.network.state.GetFTPFilesResult
 import ru.abdulkhalikov.ftpclient.data.network.state.UploadFileResult
@@ -21,7 +22,7 @@ class FTPRemoteDataSource @Inject constructor(
     private val context: Context
 ) {
 
-    val ftpClient = FTPConnectionManager.getFTPClient()
+    var ftpClient = FTPConnectionManager.getFTPClient()
 
     private val _connectionState =
         MutableStateFlow<FTPConnectionResult>(FTPConnectionResult.Initial)
@@ -39,13 +40,34 @@ class FTPRemoteDataSource @Inject constructor(
     ) {
         withContext(Dispatchers.IO) {
             try {
-                ftpClient.connect(params.host, params.port)
+                ftpClient = FTPConnectionManager.getFTPClient(params.protocolType)
+
+                if (ftpClient.isConnected) {
+                    try {
+                        ftpClient.disconnect()
+                    } catch (e: Exception) {
+                    }
+                }
 
                 _connectionState.value = FTPConnectionResult.Loading
+
+                ftpClient.connect(params.host, params.port)
 
                 if (!ftpClient.isConnected) {
                     _connectionState.value = FTPConnectionResult.Error("Connection failed")
                     return@withContext
+                }
+
+                if (params.protocolType == ru.abdulkhalikov.ftpclient.domain.ProtocolType.FTPS) {
+                    val ftpsClient = ftpClient as FTPSClient
+                    try {
+                        ftpsClient.execPBSZ(0)
+                        ftpsClient.execPROT("P")
+                    } catch (e: Exception) {
+                        _connectionState.value =
+                            FTPConnectionResult.Error("FTPS SSL setup failed: ${e.message}")
+                        return@withContext
+                    }
                 }
 
                 val loginSuccess = ftpClient.login(params.username, params.password)
@@ -60,9 +82,9 @@ class FTPRemoteDataSource @Inject constructor(
 
                 return@withContext
             } catch (e: IOException) {
-                _connectionState.value = FTPConnectionResult.Error(e.message.toString())
+                _connectionState.value = FTPConnectionResult.Error(e.message ?: "IO Error")
             } catch (e: Exception) {
-                _connectionState.value = FTPConnectionResult.Error(e.message.toString())
+                _connectionState.value = FTPConnectionResult.Error(e.message ?: "Unknown error")
             }
         }
     }
@@ -134,7 +156,8 @@ class FTPRemoteDataSource @Inject constructor(
         if (uri.scheme == "content") {
             context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
                 if (cursor.moveToFirst()) {
-                    val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                    val nameIndex =
+                        cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
                     if (nameIndex >= 0) {
                         result = cursor.getString(nameIndex)
                     }

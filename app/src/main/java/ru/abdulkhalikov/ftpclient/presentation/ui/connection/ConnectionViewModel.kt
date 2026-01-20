@@ -9,6 +9,7 @@ import ru.abdulkhalikov.ftpclient.domain.ConnectUseCase
 import ru.abdulkhalikov.ftpclient.domain.ConnectionParams
 import ru.abdulkhalikov.ftpclient.domain.ConnectionRepository
 import ru.abdulkhalikov.ftpclient.domain.FTPConnectionStatus
+import ru.abdulkhalikov.ftpclient.domain.ProtocolType
 import javax.inject.Inject
 
 class ConnectionViewModel @Inject constructor(
@@ -22,11 +23,12 @@ class ConnectionViewModel @Inject constructor(
         host: String,
         port: Int = 21,
         username: String,
-        password: String
+        password: String,
+        protocolType: ProtocolType = ProtocolType.FTP
     ) {
         viewModelScope.launch {
-            Log.d("LOG_TAG", "connection state: try to connect")
-            val connectionParams = ConnectionParams(host, port, username, password)
+            Log.d("LOG_TAG", "connection state: try to connect with protocol: $protocolType")
+            val connectionParams = ConnectionParams(host, port, username, password, protocolType)
             connectUseCase.connect(connectionParams)
         }
     }
