@@ -85,7 +85,6 @@ class FTPRemoteDataSource @Inject constructor(
         withContext(Dispatchers.IO) {
             _uploadState.value = UploadFileResult.Loading
             try {
-                // Получаем имя файла из URI
                 val fileName = getFileNameFromUri(localUri) ?: "uploaded_file"
                 val fullRemotePath = if (remotePath.endsWith("/")) {
                     remotePath + fileName
@@ -97,7 +96,6 @@ class FTPRemoteDataSource @Inject constructor(
                     val success = ftpClient.storeFile(fullRemotePath, inputStream)
                     if (success) {
                         _uploadState.value = UploadFileResult.Success
-                        Log.d("LOG_TAG", "Upload file: success state set")
                     } else {
                         val replyString = ftpClient.replyString
                         _uploadState.value = UploadFileResult.Error("Upload failed: $replyString")
