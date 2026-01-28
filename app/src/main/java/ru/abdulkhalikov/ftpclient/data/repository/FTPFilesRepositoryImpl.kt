@@ -34,7 +34,7 @@ class FTPFilesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun removeFile(path: String) {
-
+        connectionManager.removeFile(path)
     }
 
     override suspend fun createDirectory(path: String, directoryName: String): Boolean {

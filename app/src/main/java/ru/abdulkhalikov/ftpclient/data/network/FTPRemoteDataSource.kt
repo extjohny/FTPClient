@@ -11,8 +11,12 @@ import kotlinx.coroutines.withContext
 import org.apache.commons.net.ftp.FTPSClient
 import ru.abdulkhalikov.ftpclient.data.network.state.FTPConnectionResult
 import ru.abdulkhalikov.ftpclient.data.network.state.GetFTPFilesResult
+import ru.abdulkhalikov.ftpclient.data.network.state.RemovingFilesResult
 import ru.abdulkhalikov.ftpclient.data.network.state.UploadFileResult
 import ru.abdulkhalikov.ftpclient.domain.ConnectionParams
+import ru.abdulkhalikov.ftpclient.domain.ProtocolType.*
+import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -34,6 +38,9 @@ class FTPRemoteDataSource @Inject constructor(
 
     private val _uploadState = MutableStateFlow<UploadFileResult>(UploadFileResult.Initial)
     val uploadState = _uploadState.asStateFlow()
+
+    private val _removingState = MutableStateFlow<RemovingFilesResult>(RemovingFilesResult.Initial)
+    val removingState = _removingState.asStateFlow()
 
     suspend fun connect(
         params: ConnectionParams
@@ -58,25 +65,21 @@ class FTPRemoteDataSource @Inject constructor(
                     return@withContext
                 }
 
-                if (params.protocolType == ru.abdulkhalikov.ftpclient.domain.ProtocolType.FTPS) {
-                    val ftpsClient = ftpClient as FTPSClient
+                val loginSuccess = ftpClient.login(params.username, params.password)
+                if (!loginSuccess) {
+                    _connectionState.value = FTPConnectionResult.Error("Incorrect input data")
+                    return@withContext
+                }
+                if (ftpClient is FTPSClient) {
                     try {
-                        ftpsClient.execPBSZ(0)
-                        ftpsClient.execPROT("P")
+                        (ftpClient as FTPSClient).execPROT("P")
+                        ftpClient.enterLocalPassiveMode()
                     } catch (e: Exception) {
                         _connectionState.value =
                             FTPConnectionResult.Error("FTPS SSL setup failed: ${e.message}")
                         return@withContext
                     }
                 }
-
-                val loginSuccess = ftpClient.login(params.username, params.password)
-                if (!loginSuccess) {
-                    _connectionState.value = FTPConnectionResult.Error("Incorrect input data")
-                    return@withContext
-                }
-
-                ftpClient.enterLocalPassiveMode()
 
                 _connectionState.value = FTPConnectionResult.Success
 
@@ -99,6 +102,19 @@ class FTPRemoteDataSource @Inject constructor(
                 _files.value = GetFTPFilesResult.Error(e.message.toString())
             } catch (e: Exception) {
                 _files.value = GetFTPFilesResult.Error(e.message.toString())
+            }
+        }
+    }
+
+    suspend fun removeFile(remotePath: String) {
+        withContext(Dispatchers.IO) {
+            _removingState.value = RemovingFilesResult.Loading
+            try {
+                ftpClient.deleteFile(remotePath)
+            } catch (e: IOException) {
+                _uploadState.value = UploadFileResult.Error(e.message ?: "IO Error")
+            } catch (e: Exception) {
+                _uploadState.value = UploadFileResult.Error(e.message ?: "Unknown error")
             }
         }
     }
@@ -175,5 +191,26 @@ class FTPRemoteDataSource @Inject constructor(
             }
         }
         return result
+    }
+
+    suspend fun downloadFileToTemp(remotePath: String, localFile: File): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                // Создаем поток для записи
+                FileOutputStream(localFile).use { outputStream ->
+                    // Скачиваем файл с сервера
+                    val success = ftpClient.retrieveFile(remotePath, outputStream)
+
+                    if (!success) {
+                        Log.e("FTPRemoteDataSource", "Ошибка скачивания файла: ${ftpClient.replyString}")
+                    }
+
+                    success
+                }
+            } catch (e: Exception) {
+                Log.e("FTPRemoteDataSource", "Ошибка скачивания файла: ${e.message}")
+                false
+            }
+        }
     }
 }
