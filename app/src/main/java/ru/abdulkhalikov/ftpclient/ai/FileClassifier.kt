@@ -9,7 +9,7 @@ import kotlinx.coroutines.withContext
 class FileClassifier(context: Context) {
 
     private val imageClassifier = ImageClassifier(context)
-    private val textClassifier = TextClassifier(context)
+    private val textClassifier = SimpleTextClassifier() // Используем простую версию
 
     companion object {
         private const val TAG = "FileClassifier"
@@ -35,14 +35,14 @@ class FileClassifier(context: Context) {
             try {
                 val extension = getFileExtension(fileName).lowercase()
 
-                when {
-                    // Изображения - через MobileNet
+                val result = when {
+                    // Изображения - через MobileNet (если доступен)
                     IMAGE_EXTENSIONS.contains(extension) && imageClassifier.isAvailable() -> {
                         classifyImage(uri, context, fileName)
                     }
 
-                    // Текстовые файлы - через BERT
-                    TEXT_EXTENSIONS.contains(extension) && textClassifier.isAvailable() -> {
+                    // Текстовые файлы - через простой классификатор
+                    TEXT_EXTENSIONS.contains(extension) -> {
                         classifyText(uri, context, fileName)
                     }
 
@@ -106,13 +106,17 @@ class FileClassifier(context: Context) {
                         )
                     }
                 }
+
+                Log.d(TAG, "Файл $fileName классифицирован как: ${result.category}")
+                result
+
             } catch (e: Exception) {
-                Log.e(TAG, "Ошибка классификации файла: ${e.message}")
+                Log.e(TAG, "Ошибка классификации файла $fileName: ${e.message}")
                 ClassificationResult(
                     category = "Ошибка анализа",
                     confidence = 0.0f,
                     emoji = "❌",
-                    details = "Не удалось проанализировать файл"
+                    details = "Не удалось проанализировать файл: ${e.message}"
                 )
             }
         }
@@ -152,7 +156,7 @@ class FileClassifier(context: Context) {
                         category = "Изображение",
                         confidence = 0.5f,
                         emoji = "📷",
-                        details = "Графический файл (анализ не удался)"
+                        details = "Графический файл"
                     )
                 }
             }
@@ -160,7 +164,7 @@ class FileClassifier(context: Context) {
     }
 
     /**
-     * Классификация текста через BERT
+     * Классификация текста через простой классификатор
      */
     private suspend fun classifyText(uri: Uri, context: Context, fileName: String): ClassificationResult {
         return withContext(Dispatchers.IO) {
