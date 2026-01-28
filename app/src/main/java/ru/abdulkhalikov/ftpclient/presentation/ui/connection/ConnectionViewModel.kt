@@ -21,14 +21,14 @@ class ConnectionViewModel @Inject constructor(
 
     fun connect(
         host: String,
-        port: Int = 21,
+        port: String,
         username: String,
         password: String,
         protocolType: ProtocolType = ProtocolType.FTP
     ) {
         viewModelScope.launch {
             Log.d("LOG_TAG", "connection state: try to connect with protocol: $protocolType")
-            val connectionParams = ConnectionParams(host, port, username, password, protocolType)
+            val connectionParams = ConnectionParams(host, port.toInt(), username, password, protocolType)
             connectUseCase.connect(connectionParams)
         }
     }
