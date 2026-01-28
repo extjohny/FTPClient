@@ -1,5 +1,6 @@
 package ru.abdulkhalikov.ftpclient.presentation.ui.files
 
+import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import ru.abdulkhalikov.ftpclient.ai.FileClassifier
 import ru.abdulkhalikov.ftpclient.domain.AddFileUseCase
 import ru.abdulkhalikov.ftpclient.domain.CreateDirectoryUseCase
 import ru.abdulkhalikov.ftpclient.domain.FTPFilesRepository
@@ -24,8 +26,18 @@ class FilesViewModel @Inject constructor(
     private val getFilesUseCase: GetFilesUseCase,
     private val addFileUseCase: AddFileUseCase,
     private val createDirectoryUseCase: CreateDirectoryUseCase,
-    private val removeFileUseCase: RemoveFileUseCase
+    private val removeFileUseCase: RemoveFileUseCase,
+    private val context: Context // Добавляем Context
 ) : ViewModel() {
+
+    private val fileClassifier = FileClassifier(context)
+    private val classificationCache = mutableMapOf<String, FileClassifier.ClassificationResult>()
+
+    // Состояние для UI
+    private val _classificationState = MutableStateFlow<ClassificationState>(
+        ClassificationState.Idle
+    )
+    val classificationState: StateFlow<ClassificationState> = _classificationState
 
     val screenState: StateFlow<GetFTPFilesStatus> = repository.files
         .stateIn(
@@ -121,5 +133,103 @@ class FilesViewModel @Inject constructor(
             removeFileUseCase.removeFile(remoteFile.path)
             getFiles(_remoteCurrentPath.value)
         }
+    }
+
+    /**
+     * Классифицировать файл с помощью ИИ
+     */
+    fun classifyFile(remoteFile: RemoteFile) {
+        // Не классифицируем папки и большие файлы (> 50MB)
+        if (remoteFile.isDirectory || remoteFile.size > 50 * 1024 * 1024) {
+            _classificationState.value = ClassificationState.Error(
+                file = remoteFile,
+                message = "Файл слишком большой или это папка"
+            )
+            return
+        }
+
+        // Проверяем кэш
+        classificationCache[remoteFile.path]?.let { result ->
+            _classificationState.value = ClassificationState.Result(remoteFile, result)
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                _classificationState.value = ClassificationState.Loading(remoteFile)
+
+                // Для тестирования используем заглушку (в реальном проекте скачиваем файл)
+                // Вместо реального скачивания используем заглушку для демонстрации
+                val result = simulateClassification(remoteFile)
+
+                // Сохраняем в кэш
+                classificationCache[remoteFile.path] = result
+                _classificationState.value = ClassificationState.Result(remoteFile, result)
+            } catch (e: Exception) {
+                _classificationState.value = ClassificationState.Error(
+                    remoteFile,
+                    "Ошибка: ${e.message}"
+                )
+            }
+        }
+    }
+
+    /**
+     * Заглушка для тестирования (в реальном проекте заменить на реальную классификацию)
+     */
+    private suspend fun simulateClassification(remoteFile: RemoteFile): FileClassifier.ClassificationResult {
+        // Временная заглушка для тестирования
+        // В реальном проекте здесь будет вызов fileClassifier.classifyFile()
+
+        return when {
+            remoteFile.name.endsWith(".jpg", ignoreCase = true) ||
+                    remoteFile.name.endsWith(".png", ignoreCase = true) ->
+                FileClassifier.ClassificationResult(
+                    category = "Изображение",
+                    confidence = 0.9f,
+                    emoji = "📷",
+                    details = "Графический файл"
+                )
+
+            remoteFile.name.endsWith(".txt", ignoreCase = true) ||
+                    remoteFile.name.endsWith(".md", ignoreCase = true) ->
+                FileClassifier.ClassificationResult(
+                    category = "Текстовый файл",
+                    confidence = 0.8f,
+                    emoji = "📄",
+                    details = "Текстовый документ"
+                )
+
+            remoteFile.name.endsWith(".pdf", ignoreCase = true) ||
+                    remoteFile.name.endsWith(".doc", ignoreCase = true) ->
+                FileClassifier.ClassificationResult(
+                    category = "Документ",
+                    confidence = 0.85f,
+                    emoji = "📑",
+                    details = "Файл документа"
+                )
+
+            else -> FileClassifier.ClassificationResult(
+                category = "Файл",
+                confidence = 0.7f,
+                emoji = "📎",
+                details = "Файл .${remoteFile.name.substringAfterLast(".", "")}"
+            )
+        }
+    }
+
+    /**
+     * Очистка кэша при смене директории
+     */
+    fun clearClassificationCache() {
+        classificationCache.clear()
+        _classificationState.value = ClassificationState.Idle
+    }
+
+    sealed class ClassificationState {
+        data object Idle : ClassificationState()
+        data class Loading(val file: RemoteFile) : ClassificationState()
+        data class Result(val file: RemoteFile, val result: FileClassifier.ClassificationResult) : ClassificationState()
+        data class Error(val file: RemoteFile, val message: String) : ClassificationState()
     }
 }
