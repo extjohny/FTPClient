@@ -42,6 +42,14 @@ android {
 
 dependencies {
 
+    implementation("org.tensorflow:tensorflow-lite:2.14.0")
+    implementation("org.tensorflow:tensorflow-lite-gpu:2.14.0")
+// опционально
+    implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
+    implementation("org.tensorflow:tensorflow-lite-task-text:0.4.4")
+// Для работы с изображениями
+    implementation("androidx.exifinterface:exifinterface:1.3.6")
+
     // Apache Commons Net
     implementation("commons-net:commons-net:3.12.0")
 
