@@ -90,9 +90,9 @@ fun LoginForm(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         var host by rememberSaveable { mutableStateOf("31.24.251.233") }
-        var port by rememberSaveable { mutableIntStateOf(21) }
-        var username by rememberSaveable { mutableStateOf("user311585") }
-        var password by rememberSaveable { mutableStateOf("DzKp2Xpn1a16") }
+        var port by rememberSaveable { mutableStateOf("21") }
+        var username by rememberSaveable { mutableStateOf("user312413") }
+        var password by rememberSaveable { mutableStateOf("u38CZXbUcJQQ") }
         var selectedProtocol by rememberSaveable { mutableStateOf(ProtocolType.FTP) }
 
         Row(
@@ -135,8 +135,8 @@ fun LoginForm(
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
             maxLines = 1,
-            value = port.toString(),
-            onValueChange = { port = it.toInt() },
+            value = port,
+            onValueChange = { port = it },
             shape = RoundedCornerShape(CORNER_RADIUS),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             placeholder = {

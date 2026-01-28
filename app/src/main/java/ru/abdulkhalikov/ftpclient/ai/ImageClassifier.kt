@@ -7,8 +7,6 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import org.tensorflow.lite.Interpreter
-import org.tensorflow.lite.gpu.CompatibilityList
-import org.tensorflow.lite.gpu.GpuDelegate
 import java.io.BufferedReader
 import java.io.FileInputStream
 import java.io.InputStreamReader
@@ -39,13 +37,9 @@ class ImageClassifier(context: Context) {
             // Загружаем модель
             val modelBuffer = loadModelFile(context.assets, MODEL_FILE)
 
-            // Настройка интерпретатора
+            // Настройка интерпретатора (упрощенная, без GPU)
             val options = Interpreter.Options()
-            val compatList = CompatibilityList()
-
-            if (compatList.isDelegateSupportedOnThisDevice) {
-                options.addDelegate(GpuDelegate(compatList.bestOptionsForThisDevice))
-            }
+            options.setNumThreads(4) // 4 потока для CPU
 
             interpreter = Interpreter(modelBuffer, options)
             Log.d(TAG, "MobileNet модель загружена успешно")
@@ -70,7 +64,8 @@ class ImageClassifier(context: Context) {
             val bitmap = loadBitmapFromUri(uri, context)
                 ?: return ClassificationResult.error("Не удалось загрузить изображение")
 
-            val resizedBitmap = Bitmap.createScaledBitmap(bitmap, IMAGE_SIZE, IMAGE_SIZE, false)
+            // Масштабируем через Bitmap.createScaledBitmap
+            val resizedBitmap = Bitmap.createScaledBitmap(bitmap, IMAGE_SIZE, IMAGE_SIZE, true)
             val byteBuffer = convertBitmapToByteBuffer(resizedBitmap)
 
             val output = Array(1) { FloatArray(labels.size) }
@@ -122,7 +117,7 @@ class ImageClassifier(context: Context) {
 
         // Получаем топ-3 предсказания
         return probabilities
-            .mapIndexed { index, prob -> Prediction(labels[index], prob) }
+            .mapIndexed { index, prob -> Prediction(labels.getOrElse(index) { "unknown" }, prob) }
             .sortedByDescending { it.confidence }
             .take(3)
     }
